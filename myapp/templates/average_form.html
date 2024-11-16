@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Average Data Form</title>
+</head>
+<body>
+    <h1>Enter Average Data</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit</button>
+    </form>
+
+    {% if result %}
+        <h2>Results</h2>
+        <p>Average Price: {{ result.average_price }}</p>
+        <p>Average Salary: {{ result.average_salary }}</p>
+        <p>Price-to-Salary Ratio: {{ result.ratio }}</p>
+    {% endif %}
+</body>
+</html>
