@@ -1,21 +1,68 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Average Data Form</title>
+    <title>Previsão de Valor de Imóvel</title>
 </head>
 <body>
-    <h1>Enter Average Data</h1>
-    <form method="post">
+    <h1>Previsão de Valor com base na Renda Média</h1>
+
+    <!-- Formulário para o usuário digitar a renda média -->
+    <form method="POST">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Submit</button>
+        <label for="average_salary">Digite a Renda Média (average_salary):</label>
+        <input type="number" step="0.01" name="average_salary" id="average_salary" required>
+        <button type="submit">Fazer Previsão</button>
+        <!-- Novo botão para análise -->
+        <button type="button" id="analysisButton">Fazer Análise</button>
     </form>
 
-    {% if result %}
-        <h2>Results</h2>
-        <p>Average Price: {{ result.average_price }}</p>
-        <p>Average Salary: {{ result.average_salary }}</p>
-        <p>Price-to-Salary Ratio: {{ result.ratio }}</p>
-    {% endif %}
+    <h2>Resultado da Previsão:</h2>
+    <p>Renda Média: R${{ result.average_salary|floatformat:2 }}</p>
+    <p>Valor Predito da Casa: R${{ result.predicted_value|floatformat:2 }}</p>
+
+    <!-- Exibir a mensagem de sucesso ou erro -->
+    <p id="analysisMessage" style="color: green;"></p>
+
+    <script>
+        document.getElementById('analysisButton').onclick = function() {
+    fetch("{% url 'analisar_csv' %}", {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.blob())  // Espera por um blob (imagem)
+    .then(blob => {
+        const imageUrl = URL.createObjectURL(blob);
+    
+        // Cria um elemento de imagem
+        const imgElement = document.createElement('img');
+        imgElement.src = imageUrl;
+
+        // Ajuste do tamanho da imagem
+        imgElement.style.width = "100%";  // Faz a imagem ocupar toda a largura disponível
+        imgElement.style.height = "auto"; // Ajusta a altura proporcionalmente
+
+        // Adiciona a imagem à página
+        document.getElementById('analysisMessage').innerHTML = '';  // Limpa a mensagem de erro
+        document.getElementById('analysisMessage').appendChild(imgElement);
+    })
+    .catch(error => {
+        document.getElementById('analysisMessage').style.color = "red";
+        document.getElementById('analysisMessage').textContent = "Erro na requisição.";
+    });
+};
+
+
+    </script>
+    
+    <style>
+        #analysisMessage img {
+            width: 1920px;  /* Define a largura fixa */
+            height: 1080px; /* Define a altura fixa */
+        }
+    </style>
+    
 </body>
 </html>
