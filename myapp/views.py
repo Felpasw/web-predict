@@ -92,3 +92,7 @@ def analisar_csv(request):
         # Caso haja um erro, retorna um JSON com a mensagem de erro
         print(f"Error: {str(e)}")
         return JsonResponse({"status": "error", "message": str(e)})
+    
+
+def mapa_casas(request):
+    return render(request, 'mapa_casas.html')
