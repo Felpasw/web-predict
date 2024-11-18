@@ -3,7 +3,7 @@ from .forms import AverageForm
 from keras.models import load_model
 import joblib
 import matplotlib
-matplotlib.use('Agg')  # Força o backend não interativo
+matplotlib.use('Agg')  
 import pandas as pd
 import matplotlib.pyplot as plt
 from .model import prever_valor_usuario
@@ -11,10 +11,20 @@ from django.http import JsonResponse
 import plotly.express as px
 import io
 from django.http import HttpResponse, JsonResponse
+import os
+import csv
+
 
 # Carregar o modelo e o scaler globalmente
-model = load_model("C:\\Users\\luizo\\OneDrive\\Área de Trabalho\\Projetos\\A1_House_Pricing\\modelo_mlp_median_income.h5")
-scaler = joblib.load('C:\\Users\\luizo\\OneDrive\\Área de Trabalho\\Projetos\\A1_House_Pricing\\web-predict\\webPredict\\scaler.pkl')
+
+base_dir = os.path.dirname(os.path.abspath(__file__))
+pathScaler = os.path.join(base_dir, "..", "webPredict", "scaler.pkl")
+scaler = joblib.load(pathScaler)
+
+path = os.path.join(base_dir, "..", "webPredict", "modelo_mlp_median_income.h5")
+
+model = load_model(path)
+
 
 def average_data_view(request):
     result = None  # Para armazenar o resultado
@@ -53,8 +63,13 @@ def average_data_view(request):
 
 def analisar_csv(request):
     try:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        path = os.path.join(base_dir, "..", "Data", "housing.csv")
+    
+        chp = pd.read_csv(path)
+        
         # Lê o arquivo CSV
-        chp = pd.read_csv("C:\\Users\\luizo\\OneDrive\\Área de Trabalho\\Projetos\\A1_House_Pricing\\web-predict\\Data\\housing.csv")
+        # chp = pd.read_csv("C:\\Users\\luizo\\OneDrive\\Área de Trabalho\\Projetos\\A1_House_Pricing\\web-predict\\Data\\housing.csv")
         
         # Identifica colunas categóricas
         categorical_columns = chp.select_dtypes(include=['object', 'category']).columns
@@ -95,3 +110,26 @@ def analisar_csv(request):
     
 def mapa_casas(request):
     return render(request, 'mapa_casas.html')
+
+def upload_csv(request):
+    if request.method == "POST" and request.FILES.get("file"):
+        # Obtém o arquivo enviado
+        csv_file = request.FILES["file"]
+
+        # Verifica se é um arquivo CSV
+        if not csv_file.name.endswith('.csv'):
+            return HttpResponse("Por favor, envie um arquivo CSV.")
+
+        try:
+            # Decodifica e lê o conteúdo do arquivo
+            decoded_file = csv_file.read().decode('utf-8')
+            reader = csv.reader(decoded_file.splitlines())
+
+            # Itera pelas linhas do CSV
+            for row in reader:
+                print(row)  # Processar os dados como necessário
+
+            return HttpResponse("Arquivo processado com sucesso.")
+        except Exception as e:
+            return HttpResponse(f"Erro ao processar o arquivo: {e}")
+    return render(request, "upload.html")

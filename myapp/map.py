@@ -1,9 +1,14 @@
 import folium
 import pandas as pd
 from branca.colormap import linear
+import os
 
 def create_map():
-    data = pd.read_csv("C:\\Users\\luizo\\OneDrive\\Área de Trabalho\\Projetos\\A1_House_Pricing\\web-predict\\Data\\housing.csv")
+    
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.join(base_dir, "..", "Data", "housing.csv")
+    
+    data = pd.read_csv(path)
 
     # Criar um mapa base
     base_map = folium.Map(location=[data['latitude'].mean(), data['longitude'].mean()], zoom_start=10)

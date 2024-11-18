@@ -1,10 +1,19 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-\
+import os
 
+
+
+  # Diretório base onde o script está localizado
+    
+    # Caminho relativo ao arquivo
 def analisar_CSV():
-    chp = pd.read_csv("C:\\Users\\luizo\\OneDrive\\Área de Trabalho\\Projetos\\A1_House_Pricing\\web-predict\\Data\\housing.csv")
+    
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.join(base_dir, "..", "Data", "housing.csv")
+    
+    chp = pd.read_csv(path)
 
     categorical_columns = chp.select_dtypes(include=['object', 'category']).columns
 
