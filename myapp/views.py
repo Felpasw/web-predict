@@ -15,7 +15,6 @@ import os
 import csv
 
 
-# Carregar o modelo e o scaler globalmente
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 pathScaler = os.path.join(base_dir, "..", "webPredict", "scaler.pkl")
@@ -34,13 +33,10 @@ def average_data_view(request):
         form = AverageForm(request.POST)
         if form.is_valid():
             try:
-                # Pega o dado de 'average_salary' do formulário
                 average_salary = form.cleaned_data['average_salary']
 
-                # Faz a previsão com o valor da renda média
                 predicted_value = prever_valor_usuario(average_salary)
 
-                # Armazenar o resultado para ser exibido no template
                 result = {
                     'average_salary': average_salary,
                     'predicted_value': predicted_value
@@ -48,13 +44,11 @@ def average_data_view(request):
             except Exception as e:
                 error_message = str(e)
         else:
-            # Passa os erros de validação para o template
             error_message = form.errors
 
     else:
         form = AverageForm()
 
-    # Passa o formulário, o resultado (ou erro) e os erros de validação para o template
     return render(request, 'average_form.html', {
         'form': form,
         'result': result,
@@ -68,43 +62,31 @@ def analisar_csv(request):
     
         chp = pd.read_csv(path)
         
-        # Lê o arquivo CSV
-        # chp = pd.read_csv("C:\\Users\\luizo\\OneDrive\\Área de Trabalho\\Projetos\\A1_House_Pricing\\web-predict\\Data\\housing.csv")
-        
-        # Identifica colunas categóricas
+
         categorical_columns = chp.select_dtypes(include=['object', 'category']).columns
         
-        # Cria variáveis dummy para as colunas categóricas
         dummies = pd.get_dummies(chp[categorical_columns]).astype(int)
         
-        # Remove as colunas categóricas originais
         data_without_categoricals = chp.drop(categorical_columns, axis=1)
         
-        # Combina os dados e remove as linhas com valores ausentes
         data = pd.concat([data_without_categoricals, dummies], axis=1).dropna()
-        # Criar o gráfico
         ax = data.hist(figsize=(19.2, 10.8), bins=50)
         
-        # Ajustar o layout
         plt.tight_layout()
         
-        # Salvar como PNG
         plt.savefig("grafico.png", dpi=300)
         
         
-        # Cria um buffer de memória para armazenar a imagem
         img_buf = io.BytesIO()
         plt.savefig(img_buf, format='png')
-        img_buf.seek(0)  # Reseta o ponteiro do buffer para o início
-        plt.close()  # Fecha a figura do matplotlib para liberar memória
+        img_buf.seek(0) 
+        plt.close()  
         
-        # Exibe o tamanho da imagem no log
         print(f"Image size in buffer: {img_buf.getbuffer().nbytes} bytes")
         
         # Retorna a imagem como resposta HTTP
         return HttpResponse(img_buf, content_type='image/png')
     except Exception as e:
-        # Caso haja um erro, retorna um JSON com a mensagem de erro
         print(f"Error: {str(e)}")
         return JsonResponse({"status": "error", "message": str(e)})
     
@@ -113,23 +95,26 @@ def mapa_casas(request):
 
 def upload_csv(request):
     if request.method == "POST" and request.FILES.get("file"):
-        # Obtém o arquivo enviado
         csv_file = request.FILES["file"]
 
-        # Verifica se é um arquivo CSV
         if not csv_file.name.endswith('.csv'):
             return HttpResponse("Por favor, envie um arquivo CSV.")
 
         try:
-            # Decodifica e lê o conteúdo do arquivo
-            decoded_file = csv_file.read().decode('utf-8')
-            reader = csv.reader(decoded_file.splitlines())
+            save_path = os.path.join(base_dir, 'uploads', csv_file.name)
 
-            # Itera pelas linhas do CSV
-            for row in reader:
-                print(row)  # Processar os dados como necessário
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
-            return HttpResponse("Arquivo processado com sucesso.")
+            with open(save_path, 'wb') as f:
+                for chunk in csv_file.chunks():
+                    f.write(chunk)
+
+            with open(save_path, 'r', encoding='utf-8') as f:
+                reader = csv.reader(f)
+                for row in reader:
+                    print(row)
+
+            return HttpResponse(f"Arquivo salvo e processado com sucesso em {save_path}.")
         except Exception as e:
-            return HttpResponse(f"Erro ao processar o arquivo: {e}")
-    return render(request, "upload.html")
+            return HttpResponse(f"Erro ao salvar ou processar o arquivo: {e}")
+
