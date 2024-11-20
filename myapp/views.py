@@ -93,14 +93,15 @@ def analisar_csv(request):
 def mapa_casas(request):
     return render(request, 'mapa_casas.html')
    
-def train(request):
-    try:
-        resultado = treinar_modelo_novo()  
-        return JsonResponse({'status': 'sucesso'})
-    except Exception as e:
-        return JsonResponse({'status': 'erro', 'mensagem': str(e)}, status=500)
-
-    return JsonResponse({'status': 'erro', 'mensagem': 'Método não permitido'}, status=405)
+def retrain_base(request):
+    if request.method == 'POST':
+        try:
+            from .upload_csv import treinar_modelo_novo  # Certifique-se de que o caminho está correto
+            treinar_modelo_novo()
+            return JsonResponse({"status": "success", "message": "Modelo retreinado com sucesso."})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)})
+    return JsonResponse({"status": "error", "message": "Método inválido."})
 
 
 def upload_csv(request):

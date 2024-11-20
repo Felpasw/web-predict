@@ -21,7 +21,7 @@
       <button type="submit">Enviar</button>
     </form>
 
-    <button type="button" id="mapButton">Mostrar Mapa</button>
+    <button type="button" id="retrain">Retreinar</button>
 
     <h2>Resultado da Previsão:</h2>
     <p>Renda Média: R${{ result.average_salary|floatformat:2 }}</p>
@@ -60,6 +60,28 @@
       document.getElementById('mapButton').onclick = function () {
         window.location.href = '/mapa_casas'
       }
+
+      document.getElementById('retrain').onclick = function () {
+      fetch("{% url 'retrain_base' %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.status === 'success') {
+            alert('Retreinamento concluído com sucesso!');
+          } else {
+            alert('Erro no retreinamento: ' + data.message);
+          }
+        })
+        .catch((error) => {
+          alert('Erro ao fazer a requisição: ' + error.message);
+        });
+    };
+
     </script>
 
     <style>
