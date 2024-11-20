@@ -13,7 +13,7 @@ import io
 from django.http import HttpResponse, JsonResponse
 import os
 import csv
-
+from .upload_csv import treinar_modelo_novo
 
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -92,6 +92,16 @@ def analisar_csv(request):
     
 def mapa_casas(request):
     return render(request, 'mapa_casas.html')
+   
+def train(request):
+    try:
+        resultado = treinar_modelo_novo()  
+        return JsonResponse({'status': 'sucesso'})
+    except Exception as e:
+        return JsonResponse({'status': 'erro', 'mensagem': str(e)}, status=500)
+
+    return JsonResponse({'status': 'erro', 'mensagem': 'Método não permitido'}, status=405)
+
 
 def upload_csv(request):
     if request.method == "POST" and request.FILES.get("file"):

@@ -6,6 +6,7 @@ urlpatterns = [
     path('analisar-csv/', views.analisar_csv, name='analisar_csv'),
     path('mapa_casas/', views.mapa_casas, name='mapa_casas'),
     path("uploads", views.upload_csv, name="upload_csv"),
+    path('treinar',  views.train, name="train")
 
 
 ]
