@@ -1,21 +1,165 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Average Data Form</title>
-</head>
-<body>
-    <h1>Enter Average Data</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Submit</button>
-    </form>
+  <head>
+    <title>Previsão de Valor de Imóvel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 font-sans leading-normal tracking-normal">
+    <div class="container mx-auto p-6">
+      <h1 class="text-3xl font-bold text-gray-800 mb-6">Previsão de Valor com base na Renda Média</h1>
 
-    {% if result %}
-        <h2>Results</h2>
-        <p>Average Price: {{ result.average_price }}</p>
-        <p>Average Salary: {{ result.average_salary }}</p>
-        <p>Price-to-Salary Ratio: {{ result.ratio }}</p>
-    {% endif %}
-</body>
+      <form method="POST" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-6">
+        {% csrf_token %}
+        <div class="mb-4">
+          <label
+            for="average_salary"
+            class="block text-gray-700 text-sm font-bold mb-2"
+          >
+            Digite a Renda Média (average_salary):
+          </label>
+          <input
+            type="number"
+            step="0.01"
+            name="average_salary"
+            id="average_salary"
+            required
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          />
+        </div>
+        <div class="flex items-center justify-between">
+          <button
+            type="submit"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          >
+            Fazer Previsão
+          </button>
+          <button
+            type="button"
+            id="analysisButton"
+            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          >
+            Fazer Análise
+          </button>
+          <button
+            type="button"
+            id="mapButton"
+            class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          >
+            Mostrar Mapa
+          </button>
+        </div>
+      </form>
+
+      <form
+        method="POST"
+        enctype="multipart/form-data"
+        action="{% url 'upload_csv' %}"
+        class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-6"
+      >
+        {% csrf_token %}
+        <div class="mb-4">
+          <label
+            for="file"
+            class="block text-gray-700 text-sm font-bold mb-2"
+          >
+            Arquivo para retreinamento:
+          </label>
+          <input
+            type="file"
+            name="file"
+            id="file"
+            required
+            accept=".csv"
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          />
+        </div>
+        <button
+          type="submit"
+          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+        >
+          Enviar
+        </button>
+      </form>
+
+      <button
+        type="button"
+        id="retrain"
+        class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-6"
+      >
+        Retreinar
+      </button>
+
+      <h2 class="text-2xl font-semibold text-gray-800 mb-4">
+        Resultado da Previsão:
+      </h2>
+      <p class="text-gray-700 text-lg">
+        <span class="font-bold">Renda Média:</span>
+        R${{ result.average_salary|floatformat:2 }}
+      </p>
+      <p class="text-gray-700 text-lg mb-4">
+        <span class="font-bold">Valor Predito da Casa:</span>
+        R${{ result.predicted_value|floatformat:2 }}
+      </p>
+
+      <p id="analysisMessage" class="text-lg"></p>
+    </div>
+
+    <script>
+      document.getElementById("analysisButton").onclick = function () {
+        fetch("{% url 'analisar_csv' %}", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector(
+              "[name=csrfmiddlewaretoken]"
+            ).value,
+          },
+        })
+          .then((response) => response.blob())
+          .then((blob) => {
+            const imageUrl = URL.createObjectURL(blob);
+
+            const imgElement = document.createElement("img");
+            imgElement.src = imageUrl;
+            imgElement.classList.add("w-full", "h-auto", "mt-4");
+
+            const analysisMessage = document.getElementById("analysisMessage");
+            analysisMessage.innerHTML = "";
+            analysisMessage.appendChild(imgElement);
+          })
+          .catch((error) => {
+            const analysisMessage = document.getElementById("analysisMessage");
+            analysisMessage.classList.add("text-red-500");
+            analysisMessage.textContent = "Erro na requisição.";
+          });
+      };
+
+      document.getElementById("mapButton").onclick = function () {
+        window.location.href = "/mapa_casas";
+      };
+
+      document.getElementById("retrain").onclick = function () {
+        fetch("{% url 'retrain_base' %}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector(
+              "[name=csrfmiddlewaretoken]"
+            ).value,
+          },
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success") {
+              alert("Retreinamento concluído com sucesso!");
+            } else {
+              alert("Erro no retreinamento: " + data.message);
+            }
+          })
+          .catch((error) => {
+            alert("Erro ao fazer a requisição: " + error.message);
+          });
+      };
+    </script>
+  </body>
 </html>
