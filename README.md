@@ -49,4 +49,16 @@ Os dados contêm informações do censo da Califórnia de 1990. Então, embora e
 
 - Para rodar execute:
 
+`pip install django`
+`pip install keras`
+`pip install joblib`
+`pip install matplotlib`
+`pip install pandas`
+`pip install plotly`
+`pip install tensorflow`
+`pip install folium`
+`pip install branca`
+
+
+
 `python manage.py runserver`
